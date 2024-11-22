@@ -22,7 +22,11 @@ export default function MyArticlesScreen() {
 
   useEffect(() => {
     const fetchArticles = async () => {
-     
+     const storedArticles = await AsyncStorage.getItem("customeArticles");
+     if (storedArticles) {
+        setArticles(JSON.parse(storedArticles));
+     }
+     setLoading(false);
     };
 
     fetchArticles();
@@ -33,13 +37,22 @@ export default function MyArticlesScreen() {
   };
 
   const handleArticleClick = (article) => {
+    navigation.navigate("CustomNewsScreen", { article });
   };
 
-  const deleteArticle = async () => {
-    
+  const deleteArticle = async (index) => {
+    try {
+        const updatedArticles = [...articles];
+        updatedArticles.splite(index, 1);
+        await AsyncStorage.setItem("customArticles", JSON.stringify(updatedArticles));
+        setArticles(updatedArticles);
+    } catch (error) {
+        console.error("Error deleting the article:", error);
+    }
   };
 
   const editArticle = () => {
+    navigation.navigate("NewsFormScreen", { articleToEdit: article, articleIndex: index });
   };
 
   return (
@@ -63,16 +76,33 @@ export default function MyArticlesScreen() {
             articles.map((article, index) => (
               <View key={index} style={styles.articleCard} testID="articleCard">
                 <TouchableOpacity testID="handleArticleBtn">
-                  
+                  {article.image && (
+                    <Image
+                        source={{ uri: article.image }}
+                        style={styles.articleImage}
+                    />
+                  )}
                   <Text style={styles.articleTitle}>{article.title}</Text>
                   <Text style={styles.articleDescription} testID="articleDescp">
-                  
+                    {article.description?.substring(0, 50) + "..."}
                   </Text>
                 </TouchableOpacity>
 
                 {/* Edit and Delete Buttons */}
                 <View style={styles.actionButtonsContainer} testID="editDeleteButtons">
-                  
+                  <TouchableOpacity
+                    onPress={() => editArticle(article, index)}
+                    style={styles.editButton} 
+                    onPress={() => handleArticleClick(article)}
+                  >
+                    <Text style={styles.editButtonText}>Edit</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => deletedArticle(index)}
+                    style={styles.deleteButton}
+                  >
+                    <Text style={styles.deleteButtonText}>Delete</Text>
+                  </TouchableOpacity>
                  
                 </View>
               </View>
